@@ -1,0 +1,104 @@
+[tool.poetry]
+name = "doclint"
+version = "0.1.0"
+description = "Data quality linting for AI knowledge bases"
+authors = ["Karthik Thyagarajan <karthik@example.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "doclint"}]
+homepage = "https://github.com/karthikcsq/doclint"
+repository = "https://github.com/karthikcsq/doclint"
+keywords = ["ai", "rag", "data-quality", "linting", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Quality Assurance",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+# CLI & Terminal UI
+typer = "^0.12.0"
+rich = "^13.7.0"
+click = "^8.1.7"
+
+# Configuration & Validation
+pydantic = "^2.6.0"
+pydantic-settings = "^2.2.0"
+tomli = "^2.0.1"
+
+# Embeddings & ML
+sentence-transformers = "^2.3.1"
+torch = "^2.2.0"
+numpy = "^1.26.0"
+scikit-learn = "^1.4.0"
+
+# Document Parsing
+pypdf = "^4.0.0"
+python-docx = "^1.1.0"
+beautifulsoup4 = "^4.12.0"
+lxml = "^5.1.0"
+markdown = "^3.5.0"
+python-magic-bin = "^0.4.14"
+
+# Caching & Storage
+diskcache = "^5.6.0"
+platformdirs = "^4.2.0"
+
+# Async & Performance
+aiofiles = "^23.2.0"
+tqdm = "^4.66.0"
+
+# Date/Time utilities
+python-dateutil = "^2.8.0"
+
+[tool.poetry.group.dev.dependencies]
+# Testing
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.0"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.12.0"
+
+# Code Quality
+black = "^24.1.0"
+ruff = "^0.2.0"
+mypy = "^1.8.0"
+pre-commit = "^3.6.0"
+
+# Documentation
+mkdocs = "^1.5.0"
+mkdocs-material = "^9.5.0"
+
+[tool.poetry.scripts]
+doclint = "doclint.cli.main:app"
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+# Allow untyped decorators from third-party libraries
+disallow_untyped_decorators = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "--cov=doclint --cov-report=term-missing"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

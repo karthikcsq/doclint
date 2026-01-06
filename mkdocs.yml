@@ -1,0 +1,26 @@
+site_name: DocLint Documentation
+site_description: Data quality linting for AI knowledge bases
+site_author: Karthik Thyagarajan
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: blue
+  features:
+    - navigation.sections
+    - navigation.expand
+    - toc.integrate
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Configuration: configuration.md
+  - Detectors: detectors.md
+  - API Reference: api/
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
+  - codehilite

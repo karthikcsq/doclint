@@ -73,7 +73,6 @@ pre-commit = "^3.6.0"
 # Documentation
 mkdocs = "^1.5.0"
 mkdocs-material = "^9.5.0"
-types-markdown = "^3.10.0.20251106"
 
 [tool.poetry.scripts]
 doclint = "doclint.cli.main:app"
@@ -96,6 +95,18 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 # Allow untyped decorators from third-party libraries
 disallow_untyped_decorators = false
+
+# Ignore missing type stubs for third-party libraries
+[[tool.mypy.overrides]]
+module = [
+    "markdown",
+    "yaml",
+    "bs4",
+    "lxml",
+    "pypdf",
+    "docx",
+]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

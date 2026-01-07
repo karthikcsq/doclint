@@ -73,6 +73,7 @@ pre-commit = "^3.6.0"
 # Documentation
 mkdocs = "^1.5.0"
 mkdocs-material = "^9.5.0"
+types-markdown = "^3.10.0.20251106"
 
 [tool.poetry.scripts]
 doclint = "doclint.cli.main:app"
@@ -83,6 +84,8 @@ target-version = ['py310']
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
 select = ["E", "F", "I"]
 
 [tool.mypy]

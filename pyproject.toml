@@ -105,6 +105,9 @@ module = [
     "lxml",
     "pypdf",
     "docx",
+    "sentence_transformers",
+    "torch",
+    "diskcache",
 ]
 ignore_missing_imports = true
 

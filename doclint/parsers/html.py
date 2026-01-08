@@ -108,16 +108,16 @@ class HTMLParser(BaseParser):
             # Extract meta tags
             author_meta = soup.find("meta", attrs={"name": "author"})
             if author_meta and author_meta.get("content"):
-                metadata.author = author_meta["content"]
+                metadata.author = str(author_meta["content"])
 
             description_meta = soup.find("meta", attrs={"name": "description"})
             if description_meta and description_meta.get("content"):
-                metadata.custom["description"] = description_meta["content"]
+                metadata.custom["description"] = str(description_meta["content"])
 
             # Keywords as tags
             keywords_meta = soup.find("meta", attrs={"name": "keywords"})
             if keywords_meta and keywords_meta.get("content"):
-                keywords = keywords_meta["content"].split(",")
+                keywords = str(keywords_meta["content"]).split(",")
                 metadata.tags = [k.strip() for k in keywords]
 
         except Exception:

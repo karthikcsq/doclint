@@ -311,3 +311,35 @@ Content.
 
         assert metadata.title == "DateTime Test"
         assert metadata.created is not None
+
+    def test_extract_metadata_from_toml_frontmatter(self, tmp_path: Path) -> None:
+        """Test metadata extraction from TOML frontmatter."""
+        test_file = tmp_path / "test.md"
+        content = """+++
+title = "TOML Document"
+author = "Alice Smith"
+tags = ["rust", "toml", "config"]
+date = 2024-03-20
+category = "configuration"
++++
+
+# Content
+
+Some content here.
+"""
+        test_file.write_text(content, encoding="utf-8")
+
+        parser = MarkdownParser()
+        metadata = parser.extract_metadata(test_file)
+
+        # Should extract TOML frontmatter metadata
+        assert metadata.title == "TOML Document"
+        assert metadata.author == "Alice Smith"
+        assert "rust" in metadata.tags
+        assert "toml" in metadata.tags
+        assert "config" in metadata.tags
+        assert metadata.created is not None
+        assert metadata.created.year == 2024
+        assert metadata.created.month == 3
+        assert metadata.created.day == 20
+        assert metadata.custom.get("category") == "configuration"

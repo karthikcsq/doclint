@@ -1,12 +1,19 @@
 """Markdown parser."""
 
 import re
+import sys
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any, ClassVar, Dict, Tuple
 
 import markdown
 import yaml
+
+# TOML support (tomllib in 3.11+, tomli for 3.10)
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 from ..core.document import DocumentMetadata
 from ..core.exceptions import ParsingError
@@ -198,12 +205,15 @@ class MarkdownParser(BaseParser):
         toml_match = re.match(r"^\+\+\+\s*\n(.*?)\n\+\+\+\s*\n", content, flags=re.DOTALL)
         if toml_match:
             try:
-                # Basic TOML parsing (limited support without toml library)
-                # For now, just strip TOML frontmatter without parsing
-                # TODO: Add tomllib/toml support for full TOML parsing
+                # Parse TOML frontmatter
+                toml_str = toml_match.group(1)
+                frontmatter = tomllib.loads(toml_str)
                 content_without_fm = content[toml_match.end() :]
-                return content_without_fm, {}
+                # Ensure frontmatter is a dict
+                if isinstance(frontmatter, dict):
+                    return content_without_fm, frontmatter
             except Exception:
+                # Malformed TOML, just strip it
                 pass
 
         # No frontmatter found

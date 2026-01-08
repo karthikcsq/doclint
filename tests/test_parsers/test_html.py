@@ -154,6 +154,27 @@ class TestHTMLParser:
         assert metadata.modified is not None
         assert metadata.title is None
 
+    def test_parse_latin1_encoded_html(self, tmp_path: Path) -> None:
+        """Test parsing HTML with latin-1 encoding."""
+        test_file = tmp_path / "latin1.html"
+        content = """
+        <html>
+        <head><title>Café</title></head>
+        <body>
+            <p>Résumé with special chars: café, naïve</p>
+        </body>
+        </html>
+        """
+        # Write as latin-1 encoded
+        test_file.write_bytes(content.encode("latin-1"))
+
+        parser = HTMLParser()
+        result = parser.parse(test_file)
+
+        # Should parse without error (content may differ due to encoding)
+        assert "Caf" in result or "Café" in result
+        assert isinstance(result, str)
+
     def test_file_type_is_html(self) -> None:
         """Test parser has correct file_type."""
         parser = HTMLParser()

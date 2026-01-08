@@ -33,3 +33,33 @@ class ParsingError(DocLintError):
         self.path = path
         self.original_error = original_error
         super().__init__(message)
+
+
+class EmbeddingError(DocLintError):
+    """Raised when embedding generation fails.
+
+    Attributes:
+        model_name: Name of the embedding model being used
+        text_length: Length of the text that failed to embed
+        original_error: The underlying exception that caused the embedding failure
+    """
+
+    def __init__(
+        self,
+        message: str,
+        model_name: Optional[str] = None,
+        text_length: Optional[int] = None,
+        original_error: Optional[Exception] = None,
+    ) -> None:
+        """Initialize embedding error.
+
+        Args:
+            message: Error message describing the embedding failure
+            model_name: Optional name of the embedding model being used
+            text_length: Optional length of the text that failed to embed
+            original_error: Optional underlying exception that caused the failure
+        """
+        self.model_name = model_name
+        self.text_length = text_length
+        self.original_error = original_error
+        super().__init__(message)

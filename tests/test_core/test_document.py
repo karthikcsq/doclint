@@ -133,8 +133,7 @@ class TestDocument:
         parser = TextParser()
         doc = Document.from_file(test_file, parser)
 
-        # Computed fields should be None/empty by default
-        assert doc.embedding is None
+        # Computed fields should be empty by default (chunks added by DocumentProcessor)
         assert doc.chunks == []
 
     def test_from_file_includes_metadata(self, tmp_path: Path) -> None:

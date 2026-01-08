@@ -4,12 +4,47 @@ import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional, TypeAlias
 
 if TYPE_CHECKING:
+    import numpy as np
+    import numpy.typing as npt
+
     from ..parsers.base import BaseParser
 
+    EmbeddingArray: TypeAlias = npt.NDArray[np.float32]
+else:
+    # At runtime, use Any to avoid requiring numpy import
+    EmbeddingArray: TypeAlias = Any
+
 from .exceptions import ParsingError
+
+
+@dataclass
+class Chunk:
+    """Represents a chunk of a document for embedding and analysis.
+
+    Documents are split into chunks for fine-grained semantic analysis. Each chunk
+    has its own embedding and can be independently compared with chunks from other
+    documents. This enables detection of conflicts and similarities at a granular level.
+
+    Attributes:
+        text: The text content of this chunk
+        index: Position of chunk in the document (0-indexed)
+        document_path: Path to the parent document
+        chunk_hash: SHA-256 hash of the chunk text (for caching)
+        embedding: Semantic embedding vector for this chunk
+        start_pos: Character position where chunk starts in original document
+        end_pos: Character position where chunk ends in original document
+    """
+
+    text: str
+    index: int
+    document_path: Path
+    chunk_hash: str
+    embedding: Optional[EmbeddingArray] = None
+    start_pos: int = 0
+    end_pos: int = 0
 
 
 @dataclass
@@ -45,6 +80,10 @@ class Document:
     This is the core data structure used throughout DocLint. Documents are created
     by parsers and consumed by embeddings, detectors, and reporters.
 
+    Documents are split into chunks for fine-grained semantic analysis. Each chunk
+    is embedded independently, enabling document-independent conflict detection across
+    the entire corpus (similar to RAG systems).
+
     Attributes:
         path: Path to the source file
         content: Extracted text content (cleaned)
@@ -52,8 +91,7 @@ class Document:
         file_type: Type of document (e.g., "pdf", "docx", "markdown")
         size_bytes: Size of the source file in bytes
         content_hash: SHA256 hash of file content for caching
-        embedding: Computed semantic embedding vector (set by embedding generator)
-        chunks: Text chunks for processing (set by chunking strategy)
+        chunks: List of Chunk objects with embeddings (populated by processing pipeline)
     """
 
     path: Path
@@ -63,9 +101,8 @@ class Document:
     size_bytes: int
     content_hash: str
 
-    # Computed fields (set later by embeddings/detectors)
-    embedding: Optional[Any] = None  # np.ndarray, but avoid numpy import here
-    chunks: list[str] = field(default_factory=list)
+    # Computed fields (set later by document processing pipeline)
+    chunks: list[Chunk] = field(default_factory=list)
 
     @classmethod
     def from_file(cls, path: Path, parser: "BaseParser") -> "Document":

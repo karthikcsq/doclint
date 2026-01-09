@@ -40,7 +40,6 @@ Companies deploying RAG systems and AI agents face a critical challenge: their s
 ### Solution
 DocLint scans knowledge bases and detects:
 - **Conflicts**: Same question, different answers across documents
-- **Staleness**: Outdated documents still being referenced
 - **Incompleteness**: Missing metadata, broken links, incomplete docs
 - **Drift**: Meaning changes over time without tracking
 
@@ -105,7 +104,6 @@ User runs: doclint scan ./knowledge-base/
 6. Detection Layer
    ↓ Runs all detectors in parallel:
    ├─ ConflictDetector (semantic similarity)
-   ├─ StalenessDetector (file age, references)
    ├─ CompletenessDetector (metadata validation)
    └─ DriftDetector (version comparison)
 
@@ -234,7 +232,6 @@ doclint/
 │   │   ├── __init__.py
 │   │   ├── base.py             # Abstract base detector
 │   │   ├── conflicts.py        # Conflict detection
-│   │   ├── staleness.py        # Staleness detection
 │   │   ├── completeness.py     # Completeness checks
 │   │   ├── drift.py            # Drift detection
 │   │   └── registry.py         # Detector registry
@@ -800,98 +797,7 @@ class ConflictDetector(BaseDetector):
         return ' '.join(words) + '...'
 ```
 
-### 6. Staleness Detector
-
-```python
-# doclint/detectors/staleness.py
-
-from typing import List, Dict, Any
-from datetime import datetime, timedelta
-from pathlib import Path
-import os
-
-from .base import BaseDetector, Issue, IssueSeverity
-from ..core.document import Document
-
-class StalenessDetector(BaseDetector):
-    """Detects outdated documents."""
-
-    name = "staleness"
-    description = "Detects documents that may be outdated"
-
-    def __init__(
-        self,
-        warning_days: int = 180,
-        critical_days: int = 365,
-    ):
-        """
-        Args:
-            warning_days: Warn if doc older than this
-            critical_days: Critical if doc older than this
-        """
-        self.warning_days = warning_days
-        self.critical_days = critical_days
-
-    async def detect(self, documents: List[Document]) -> List[Issue]:
-        """Detect stale documents."""
-        issues = []
-        now = datetime.now()
-
-        for doc in documents:
-            # Determine document age
-            doc_date = self._get_document_date(doc)
-
-            if doc_date is None:
-                # No date found - flag as incomplete metadata
-                continue
-
-            age_days = (now - doc_date).days
-
-            # Check against thresholds
-            if age_days >= self.critical_days:
-                severity = IssueSeverity.CRITICAL
-                message = f"Document is {age_days} days old (>{self.critical_days} days)"
-            elif age_days >= self.warning_days:
-                severity = IssueSeverity.WARNING
-                message = f"Document is {age_days} days old (>{self.warning_days} days)"
-            else:
-                continue
-
-            issue = Issue(
-                severity=severity,
-                detector=self.name,
-                title=f"Stale document: {doc.path.name}",
-                description=message,
-                documents=[doc.path],
-                details={
-                    'age_days': age_days,
-                    'last_modified': doc_date.isoformat(),
-                    'recommendation': 'Review and update or archive this document',
-                },
-            )
-            issues.append(issue)
-
-        return issues
-
-    @staticmethod
-    def _get_document_date(doc: Document) -> Optional[datetime]:
-        """Get the most recent date for a document."""
-        dates = []
-
-        # Check metadata
-        if doc.metadata.modified:
-            dates.append(doc.metadata.modified)
-        if doc.metadata.created:
-            dates.append(doc.metadata.created)
-
-        # Check file system
-        stat = os.stat(doc.path)
-        dates.append(datetime.fromtimestamp(stat.st_mtime))
-
-        return max(dates) if dates else None
-```
-
-### 7. Base Detector
+### 6. Base Detector
 
 ```python
 # doclint/detectors/base.py
@@ -1165,9 +1071,9 @@ class ConsoleReporter(BaseReporter):
 │ 7. RUN DETECTORS (parallel)                                 │
 │                                                             │
 │    ┌────────────────┐  ┌────────────────┐                  │
-│    │ConflictDetector│  │StalenessDetect │                  │
+│    │ConflictDetector│  │CompletenessD.  │                  │
 │    │                │  │                │                  │
-│    │1. Compute sim. │  │1. Check dates  │                  │
+│    │1. Compute sim. │  │1. Check meta   │                  │
 │    │   matrix       │  │2. Compare age  │                  │
 │    │2. Find pairs   │  │3. Flag old docs│                  │
 │    │   >0.85 sim    │  │                │                  │
@@ -1294,52 +1200,39 @@ def detect_conflicts(documents):
 - Different versions of same doc → Flag as version drift, not conflict
 - Multi-language docs → Need language detection
 
-### 2. Staleness Detection Algorithm
+### 2. Completeness Detection Algorithm
 
-**Approach:** Date-based with reference checking
+**Approach:** Metadata and content validation
 
 ```python
-def detect_staleness(documents):
+def detect_incompleteness(documents):
     """
-    1. For each document, determine "last updated" date:
-       a. Check metadata (document properties)
-       b. Fall back to file system modified time
-    2. Compare against thresholds:
-       - Warning: 180 days
-       - Critical: 365 days
-    3. Optional: Check if doc is still being referenced
+    1. For each document, check:
+       a. Required metadata fields are present
+       b. Content meets minimum length requirements
+       c. No placeholder text detected
+    2. Generate issues for incomplete documents
     """
 
-    stale_docs = []
-    now = datetime.now()
+    incomplete_docs = []
 
     for doc in documents:
-        last_updated = get_latest_date(doc)
-        age_days = (now - last_updated).days
+        missing_fields = check_required_metadata(doc)
+        content_issues = check_content_quality(doc)
 
-        if age_days > 365:
-            severity = 'critical'
-        elif age_days > 180:
-            severity = 'warning'
-        else:
-            continue
+        if missing_fields or content_issues:
+            incomplete_docs.append({
+                'doc': doc,
+                'missing_metadata': missing_fields,
+                'content_issues': content_issues,
+            })
 
-        # Check if still referenced
-        is_referenced = check_references(doc, documents)
-
-        stale_docs.append({
-            'doc': doc,
-            'age_days': age_days,
-            'severity': severity,
-            'referenced': is_referenced,
-        })
-
-    return stale_docs
+    return incomplete_docs
 ```
 
 **Parameters:**
-- `warning_days`: 180 (configurable)
-- `critical_days`: 365 (configurable)
+- `required_metadata`: ["title"] (configurable)
+- `min_content_length`: 100 (configurable)
 
 **Enhancements (Phase 2):**
 - Check if doc is linked/referenced by other docs
@@ -1572,7 +1465,7 @@ doclint scan ./knowledge-base/ \
   --config ./doclint.toml        # Custom config file
   --format console               # Output format: console, json, html
   --output report.json           # Save report to file
-  --detectors conflict,staleness # Run specific detectors
+  --detectors conflict,completeness # Run specific detectors
   --severity critical            # Only show critical issues
   --cache-dir ~/.cache/custom    # Custom cache directory
   --no-cache                     # Disable caching
@@ -1771,9 +1664,9 @@ max_workers = 4
 enabled = true
 similarity_threshold = 0.85
 
-[doclint.detectors.staleness]
+[doclint.detectors.completeness]
 enabled = true
-warning_days = 180
+min_content_length = 100
 critical_days = 365
 
 [doclint.detectors.completeness]
@@ -1836,9 +1729,9 @@ class DetectorConfig(BaseSettings):
 class ConflictDetectorConfig(DetectorConfig):
     similarity_threshold: float = Field(default=0.85, ge=0.0, le=1.0)
 
-class StalenessDetectorConfig(DetectorConfig):
-    warning_days: int = Field(default=180, gt=0)
-    critical_days: int = Field(default=365, gt=0)
+class CompletenessDetectorConfig(DetectorConfig):
+    required_metadata: List[str] = Field(default=["title"])
+    min_content_length: int = Field(default=100, ge=0)
 
 class DocLintConfig(BaseSettings):
     """Main configuration."""
@@ -1849,7 +1742,7 @@ class DocLintConfig(BaseSettings):
 
     # Nested configs
     conflict: ConflictDetectorConfig = ConflictDetectorConfig()
-    staleness: StalenessDetectorConfig = StalenessDetectorConfig()
+    completeness: CompletenessDetectorConfig = CompletenessDetectorConfig()
 
     @classmethod
     def load(cls, config_path: Optional[Path] = None) -> 'DocLintConfig':
@@ -2033,7 +1926,7 @@ async def test_full_scan_workflow(tmp_path, sample_documents):
 
     # Verify results
     assert len(results['conflict']) == 2
-    assert len(results['staleness']) == 1
+    assert len(results['completeness']) == 1
 ```
 
 **3. E2E Tests:**

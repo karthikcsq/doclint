@@ -63,3 +63,63 @@ class EmbeddingError(DocLintError):
         self.text_length = text_length
         self.original_error = original_error
         super().__init__(message)
+
+
+class ConfigurationError(DocLintError):
+    """Raised when configuration is invalid or cannot be loaded.
+
+    Attributes:
+        config_path: Path to the configuration file that caused the error
+        field_name: Name of the configuration field that is invalid
+        original_error: The underlying exception that caused the configuration failure
+    """
+
+    def __init__(
+        self,
+        message: str,
+        config_path: Optional[str] = None,
+        field_name: Optional[str] = None,
+        original_error: Optional[Exception] = None,
+    ) -> None:
+        """Initialize configuration error.
+
+        Args:
+            message: Error message describing the configuration failure
+            config_path: Optional path to the configuration file
+            field_name: Optional name of the invalid configuration field
+            original_error: Optional underlying exception that caused the failure
+        """
+        self.config_path = config_path
+        self.field_name = field_name
+        self.original_error = original_error
+        super().__init__(message)
+
+
+class CacheError(DocLintError):
+    """Raised when cache operations fail.
+
+    Attributes:
+        cache_dir: Path to the cache directory
+        key: Cache key that caused the error
+        original_error: The underlying exception that caused the cache failure
+    """
+
+    def __init__(
+        self,
+        message: str,
+        cache_dir: Optional[str] = None,
+        key: Optional[str] = None,
+        original_error: Optional[Exception] = None,
+    ) -> None:
+        """Initialize cache error.
+
+        Args:
+            message: Error message describing the cache failure
+            cache_dir: Optional path to the cache directory
+            key: Optional cache key that caused the error
+            original_error: Optional underlying exception that caused the failure
+        """
+        self.cache_dir = cache_dir
+        self.key = key
+        self.original_error = original_error
+        super().__init__(message)

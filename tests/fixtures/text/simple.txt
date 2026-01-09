@@ -1,0 +1,14 @@
+Simple Plain Text Document
+
+This is a simple plain text document for testing purposes.
+It contains multiple lines of text without any special formatting.
+
+Section One
+-----------
+This is the first section with some content.
+Plain text files don't have built-in metadata.
+
+Section Two
+-----------
+This is the second section.
+The file modification date can be used as metadata.

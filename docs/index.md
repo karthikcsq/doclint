@@ -7,7 +7,6 @@ DocLint detects data quality issues before they cause AI agents to hallucinate o
 ## Features
 
 - ✅ Conflict Detection: Identifies contradictory information
-- ✅ Staleness Detection: Flags outdated documents
 - ✅ Completeness Detection: Validates metadata and content
 - ✅ Multi-Format Support: PDF, DOCX, HTML, Markdown, Plain Text
 - ✅ Beautiful CLI: Rich terminal output

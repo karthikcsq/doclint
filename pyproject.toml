@@ -60,6 +60,19 @@ tqdm = "^4.66.0"
 # Date/Time utilities
 python-dateutil = "^2.8.0"
 
+# LLM support (optional) - installed via: pip install doclint[llm]
+# Note: llama-cpp-python has platform-specific builds
+# See: https://github.com/abetlen/llama-cpp-python#installation
+
+[tool.poetry.extras]
+llm = ["llama-cpp-python"]
+
+[tool.poetry.group.llm]
+optional = true
+
+[tool.poetry.group.llm.dependencies]
+llama-cpp-python = "^0.3.0"
+
 [tool.poetry.group.dev.dependencies]
 # Testing
 pytest = "^8.0.0"

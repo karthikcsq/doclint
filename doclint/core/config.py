@@ -22,6 +22,83 @@ class DetectorConfig(BaseModel):
     enabled: bool = True
 
 
+class LLMVerifierConfig(BaseModel):
+    """Configuration for LLM-based contradiction verification.
+
+    Enables local LLM inference via llama-cpp-python for verifying
+    potential conflicts detected by heuristics.
+
+    Attributes:
+        enabled: Whether to use LLM verification
+        type: Verifier type ("llama_cpp_hf", "llama_cpp", or "mock")
+        model: Model alias for quick setup (e.g., "phi4-mini", "llama3-3b")
+        repo_id: Custom Hugging Face repo ID (overrides model alias)
+        filename: GGUF filename in repo (required with repo_id)
+        model_path: Path to local GGUF file (for llama_cpp type)
+        n_ctx: Context window size
+        n_gpu_layers: GPU layers (-1 for all, 0 for CPU-only)
+        temperature: Sampling temperature
+        max_tokens: Max response tokens
+
+    Available model aliases:
+        - phi4-reasoning: Phi-4 Mini Reasoning (default, best for conflicts)
+        - phi4-mini: Phi-4 Mini Instruct
+        - phi4-mini-q8: Phi-4 Mini Q8 (higher quality)
+        - llama3-3b: Llama 3.2 3B
+        - qwen2-3b: Qwen 2.5 3B
+    """
+
+    enabled: bool = Field(
+        default=True,
+        description="Whether to use LLM-based verification",
+    )
+    type: str = Field(
+        default="llama_cpp_hf",
+        description="Verifier type: llama_cpp_hf (auto-download), llama_cpp (local), or mock",
+    )
+    model: Optional[str] = Field(
+        default=None,
+        description="Model alias: phi4-reasoning (default), phi4-mini, llama3-3b, qwen2-3b",
+    )
+    repo_id: Optional[str] = Field(
+        default=None,
+        description="Custom Hugging Face repo ID (overrides model alias)",
+    )
+    filename: Optional[str] = Field(
+        default=None,
+        description="GGUF filename in the repo (required with repo_id)",
+    )
+    model_path: Optional[str] = Field(
+        default=None,
+        description="Path to local GGUF model file (for llama_cpp type)",
+    )
+    n_ctx: int = Field(
+        default=4096,
+        gt=0,
+        description="Context window size",
+    )
+    n_gpu_layers: int = Field(
+        default=0,
+        ge=-1,
+        description="GPU layers to offload (-1 for all, 0 for CPU)",
+    )
+    temperature: float = Field(
+        default=0.1,
+        ge=0.0,
+        le=2.0,
+        description="Sampling temperature",
+    )
+    max_tokens: int = Field(
+        default=256,
+        gt=0,
+        description="Maximum response tokens",
+    )
+    verbose: bool = Field(
+        default=False,
+        description="Enable verbose llama.cpp output",
+    )
+
+
 class ConflictDetectorConfig(DetectorConfig):
     """Configuration for conflict detection.
 
@@ -31,6 +108,7 @@ class ConflictDetectorConfig(DetectorConfig):
     Attributes:
         enabled: Whether conflict detection is enabled
         similarity_threshold: Minimum similarity score (0-1) to consider chunks related
+        llm_verifier: LLM verification configuration
     """
 
     similarity_threshold: float = Field(
@@ -38,6 +116,10 @@ class ConflictDetectorConfig(DetectorConfig):
         ge=0.0,
         le=1.0,
         description="Minimum similarity threshold for conflict detection",
+    )
+    llm_verifier: LLMVerifierConfig = Field(
+        default_factory=LLMVerifierConfig,
+        description="LLM-based verification configuration",
     )
 
     @field_validator("similarity_threshold")

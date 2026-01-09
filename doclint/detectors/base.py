@@ -80,6 +80,38 @@ class Issue:
         return result
 
 
+class ContradictionVerifier(ABC):
+    """Abstract base class for contradiction verification.
+
+    This provides a hook for LLM-based or other advanced contradiction
+    detection methods. Implementations can use language models, knowledge
+    graphs, or other techniques to verify if two text chunks contradict.
+
+    Example:
+        >>> class LLMVerifier(ContradictionVerifier):
+        ...     async def verify(self, text_a: str, text_b: str):
+        ...         # Call LLM API to check for contradiction
+        ...         response = await llm.analyze(text_a, text_b)
+        ...         return response.is_contradiction, response.confidence, response.explanation
+    """
+
+    @abstractmethod
+    async def verify(self, text_a: str, text_b: str) -> tuple[bool, float, str]:
+        """Verify if two text chunks contradict each other.
+
+        Args:
+            text_a: First text chunk
+            text_b: Second text chunk
+
+        Returns:
+            Tuple of (is_contradiction, confidence, explanation):
+                - is_contradiction: True if texts contradict
+                - confidence: Confidence score 0-1
+                - explanation: Human-readable explanation of the finding
+        """
+        pass
+
+
 class BaseDetector(ABC):
     """Abstract base class for all issue detectors.
 

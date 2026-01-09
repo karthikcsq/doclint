@@ -1,13 +1,18 @@
 """Conflict detector for finding contradictory content across documents."""
 
+from __future__ import annotations
+
 import logging
 import re
-from typing import List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple
 
 from ..core.document import Chunk, Document
 from ..embeddings.processor import get_all_chunks
 from .base import BaseDetector, ContradictionVerifier, Issue, IssueSeverity
 from .vector_index import ChunkIndex
+
+if TYPE_CHECKING:
+    from ..core.config import ConflictDetectorConfig
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +108,64 @@ class ConflictDetector(BaseDetector):
         logger.debug(
             f"Initialized ConflictDetector "
             f"(threshold={similarity_threshold}, exclude_same_doc={exclude_same_document})"
+        )
+
+    @classmethod
+    def from_config(
+        cls,
+        config: Optional[ConflictDetectorConfig] = None,
+    ) -> "ConflictDetector":
+        """Create a ConflictDetector from configuration.
+
+        This factory method creates a ConflictDetector with an LLM verifier
+        based on the configuration. By default, LLM verification is enabled
+        using Phi-4 Mini Reasoning.
+
+        Args:
+            config: ConflictDetectorConfig instance. If None, uses defaults
+                   which enables LLM verification with Phi-4 Mini.
+
+        Returns:
+            ConflictDetector with LLM verifier configured.
+
+        Example:
+            >>> # Use defaults (LLM verification enabled)
+            >>> detector = ConflictDetector.from_config()
+
+            >>> # From explicit config
+            >>> from doclint.core.config import ConflictDetectorConfig
+            >>> config = ConflictDetectorConfig(similarity_threshold=0.9)
+            >>> detector = ConflictDetector.from_config(config)
+        """
+        from .llm_verifier import create_verifier_from_config
+
+        # Use defaults if no config provided
+        if config is None:
+            from ..core.config import ConflictDetectorConfig
+
+            config = ConflictDetectorConfig()
+
+        # Create verifier if enabled
+        verifier = None
+        if config.llm_verifier.enabled:
+            verifier_config: Dict[str, Any] = {
+                "type": config.llm_verifier.type,
+                "model": config.llm_verifier.model,
+                "repo_id": config.llm_verifier.repo_id,
+                "filename": config.llm_verifier.filename,
+                "model_path": config.llm_verifier.model_path,
+                "n_ctx": config.llm_verifier.n_ctx,
+                "n_gpu_layers": config.llm_verifier.n_gpu_layers,
+                "temperature": config.llm_verifier.temperature,
+                "max_tokens": config.llm_verifier.max_tokens,
+                "verbose": config.llm_verifier.verbose,
+            }
+            verifier = create_verifier_from_config(verifier_config)
+            logger.info("LLM verifier enabled for conflict detection")
+
+        return cls(
+            similarity_threshold=config.similarity_threshold,
+            verifier=verifier,
         )
 
     async def detect(self, documents: List[Document]) -> List[Issue]:

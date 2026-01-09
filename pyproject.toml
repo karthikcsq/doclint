@@ -50,6 +50,9 @@ python-magic-bin = "^0.4.14"
 diskcache = "^5.6.0"
 platformdirs = "^4.2.0"
 
+# Vector Similarity Search
+faiss-cpu = "^1.8.0"
+
 # Async & Performance
 aiofiles = "^23.2.0"
 tqdm = "^4.66.0"
@@ -108,6 +111,7 @@ module = [
     "sentence_transformers",
     "torch",
     "diskcache",
+    "faiss",
 ]
 ignore_missing_imports = true
 

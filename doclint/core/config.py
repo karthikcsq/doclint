@@ -154,19 +154,6 @@ class CompletenessDetectorConfig(DetectorConfig):
     )
 
 
-class DriftDetectorConfig(DetectorConfig):
-    """Configuration for drift detection (experimental).
-
-    Drift detection identifies documents that have semantically drifted
-    from their original topic or purpose.
-
-    Attributes:
-        enabled: Whether drift detection is enabled (default: False, experimental)
-    """
-
-    enabled: bool = False
-
-
 class EmbeddingConfig(BaseModel):
     """Configuration for embedding generation.
 
@@ -219,7 +206,6 @@ class DocLintConfig(BaseModel):
         max_workers: Maximum number of worker threads for parsing
         conflict: Conflict detector configuration
         completeness: Completeness detector configuration
-        drift: Drift detector configuration
         embedding: Embedding generation configuration
     """
 
@@ -245,7 +231,6 @@ class DocLintConfig(BaseModel):
     # Detector configurations
     conflict: ConflictDetectorConfig = Field(default_factory=ConflictDetectorConfig)
     completeness: CompletenessDetectorConfig = Field(default_factory=CompletenessDetectorConfig)
-    drift: DriftDetectorConfig = Field(default_factory=DriftDetectorConfig)
 
     # Embedding configuration
     embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
@@ -347,7 +332,7 @@ class DocLintConfig(BaseModel):
 
             # Detector configs (nested under [detectors] or top-level)
             detectors = data.get("detectors", {})
-            for detector in ["conflict", "completeness", "drift"]:
+            for detector in ["conflict", "completeness"]:
                 if detector in detectors:
                     config_data[detector] = detectors[detector]
                 elif detector in data:

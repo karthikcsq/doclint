@@ -24,7 +24,7 @@ class Issue:
     """Represents a detected issue in the knowledge base.
 
     Attributes:
-        issue_type: Type of issue (conflict, completeness, drift)
+        issue_type: Type of issue (conflict, completeness)
         severity: Severity level (info, warning, error, critical)
         message: Human-readable description of the issue
         document_path: Path to the affected document

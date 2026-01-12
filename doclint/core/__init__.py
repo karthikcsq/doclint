@@ -4,7 +4,6 @@ from .config import (
     CompletenessDetectorConfig,
     ConflictDetectorConfig,
     DocLintConfig,
-    DriftDetectorConfig,
     EmbeddingConfig,
 )
 from .document import Chunk, Document, DocumentMetadata
@@ -26,7 +25,6 @@ __all__ = [
     "DocLintConfig",
     "ConflictDetectorConfig",
     "CompletenessDetectorConfig",
-    "DriftDetectorConfig",
     "EmbeddingConfig",
     # Scanner
     "Scanner",

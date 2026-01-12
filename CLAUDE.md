@@ -54,9 +54,13 @@ DocLint follows a **layered architecture** with parallel component processing:
 - **Commands**: `version`, `scan`
 - **Implementation**: `doclint/cli/main.py`
 
-### Orchestration Layer (Planned)
-- **Scanner**: `doclint/core/scanner.py` (not yet implemented)
-- **Purpose**: Coordinates file discovery, parsing, embedding generation, detection, and reporting
+### Orchestration Layer - **IMPLEMENTED** (not integrated into CLI)
+- **Scanner**: `doclint/core/scanner.py`
+- Coordinates file discovery, parsing, embedding generation, detection, and reporting
+- Parallel document parsing with configurable worker threads
+- Progress reporting support
+- Handles caching and error recovery
+- **Status**: Fully implemented but needs CLI integration
 
 ### Component Layers (Parallel Processing)
 
@@ -75,24 +79,27 @@ DocLint follows a **layered architecture** with parallel component processing:
   - `docx.py`: DOCX with metadata and structure extraction
   - `registry.py`: Automatic parser selection by file extension
 
-**Embeddings** (`doclint/embeddings/`)
+**Embeddings** (`doclint/embeddings/`) - **IMPLEMENTED**
 - Generate semantic embeddings using sentence-transformers
 - Model: sentence-transformers v^2.3.1 with torch backend
-- Purpose: Enable semantic similarity detection
+- Document chunking and processing for efficient embedding generation
+- **Components**:
+  - `base.py`: BaseEmbeddingGenerator abstract class
+  - `generator.py`: SentenceTransformerGenerator implementation
+  - `processor.py`: DocumentProcessor for chunking with overlap
 
-**Cache** (`doclint/cache/`)
+**Cache** (`doclint/cache/`) - **IMPLEMENTED**
 - Persistent caching layer using DiskCache
 - Cross-platform cache paths via platformdirs
 - Caches embeddings, scan results, and URL validation results
 - **Components**:
   - `backends.py`: DiskCache backend implementation
-  - `manager.py`: Cache manager for embeddings
+  - `manager.py`: Cache manager for embeddings with versioning
   - `url_cache.py`: URL validation cache with configurable TTL
 
-**Detectors** (`doclint/detectors/`) - **PARTIALLY IMPLEMENTED**
-- ConflictDetector: Find contradictory information (planned)
-- StalenessDetector: Identify outdated documents (planned)
-- **CompletenessDetector**: Validate metadata, content quality, and links (**IMPLEMENTED**)
+**Detectors** (`doclint/detectors/`) - **IMPLEMENTED**
+- **BaseDetector** and Issue models with severity levels
+- **CompletenessDetector**: Validate metadata, content quality, and links
   - Checks required metadata fields (author, created, etc.)
   - Validates minimum content length
   - Detects broken internal file links
@@ -101,11 +108,18 @@ DocLint follows a **layered architecture** with parallel component processing:
     - Cached results with 24-hour TTL to minimize network requests
     - HEAD request first, fallback to GET if needed
     - Configurable timeout (default: 5s)
-- DriftDetector: Track semantic drift over time (planned)
+- **ConflictDetector**: Find contradictory information using semantic similarity
+  - FAISS-based vector similarity search (O(n log n) instead of O(n²))
+  - Chunk-level conflict detection for fine-grained analysis
+  - Heuristic contradiction detection (negation patterns, antonyms)
+  - Optional LLM-based verification for uncertain cases
+- **VectorIndex**: FAISS-based chunk indexing for efficient similarity search
+- **LLM Verifier**: llama-cpp-python integration for local LLM verification
+- **DetectorRegistry**: Dynamic detector management and execution
 
-**Reporters** (`doclint/reporters/`)
-- Format and output scan results
-- Output formats: Console (Rich), JSON, HTML
+**Reporters** (`doclint/reporters/`) - **NOT IMPLEMENTED**
+- Empty module - needs implementation
+- Planned formats: Console (Rich), JSON, HTML
 
 ## Code Quality Standards
 
@@ -195,10 +209,18 @@ Configured checks:
 - ✅ Integration tests covering multi-format workflows
 - ✅ 187 tests across all parsers with edge case coverage
 
-### Phase 3 (Partial): Detectors - CompletenessDetector (Commit: c83f293)
-**Detector infrastructure and CompletenessDetector implemented:**
-- ✅ BaseDetector abstract class with Issue model
-- ✅ CompletenessDetector for metadata, content quality, and link validation
+### Phase 3: Embeddings & Core Infrastructure (Complete)
+**All core infrastructure implemented:**
+- ✅ Embedding generation (sentence-transformers)
+- ✅ Document chunking and processing
+- ✅ Cache manager for embeddings with versioning
+- ✅ Scanner orchestration layer (file discovery, parallel parsing, caching)
+- ✅ Configuration system with TOML support
+
+### Phase 4: Detectors (Complete) (Commit: c83f293)
+**All detectors fully implemented:**
+- ✅ BaseDetector abstract class with Issue model and severity levels
+- ✅ **CompletenessDetector** for metadata, content quality, and link validation
   - Metadata completeness validation (required fields: author, created, etc.)
   - Content length validation with configurable minimums
   - Internal file link validation (checks relative paths)
@@ -207,17 +229,23 @@ Configured checks:
     - Smart HTTP requests: HEAD first, fallback to GET
     - Persistent caching with 24-hour TTL (URLCache + DiskCache)
     - Configurable timeout (default: 5s)
-- ✅ DetectorRegistry for dynamic detector management
-- ✅ 28 comprehensive tests for CompletenessDetector (82% coverage)
+  - 28 comprehensive tests (82% coverage)
+- ✅ **ConflictDetector** for finding contradictory information
+  - FAISS-based vector similarity search (O(n log n))
+  - Chunk-level conflict detection
+  - Heuristic contradiction detection (negation patterns, antonyms)
+  - Optional LLM verification support
+- ✅ **VectorIndex** for efficient FAISS-based similarity search
+- ✅ **LLM Verifier** for optional llama-cpp-python integration
+- ✅ **DetectorRegistry** for dynamic detector management
 - ✅ Integration tests for detector pipeline
 
-### Phases 3-7: Planned
-Implementation roadmap detailed in `doclint_architecture.md`:
-- Phase 3: Embedding generation (in progress)
-- Phase 4: Conflict detection
-- Phase 5: Staleness detection
-- Phase 6: Drift detection
-- Phase 7: Advanced features and optimization
+### Remaining Work:
+- ⬜ **Reporters**: Console (Rich), JSON, and HTML output formatters
+- ⬜ **CLI Integration**: Wire Scanner into `doclint scan` command
+- ⬜ **Additional Tests**: ConflictDetector unit tests, end-to-end integration tests
+- ⬜ **Documentation**: User guides, API docs, configuration examples
+- ⬜ **Optimization**: Performance tuning, incremental scanning
 
 ## Key Files
 

@@ -2,5 +2,6 @@
 
 from .backends import DiskCacheBackend
 from .manager import CacheManager
+from .url_cache import URLCache
 
-__all__ = ["CacheManager", "DiskCacheBackend"]
+__all__ = ["CacheManager", "DiskCacheBackend", "URLCache"]

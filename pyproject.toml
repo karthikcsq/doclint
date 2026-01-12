@@ -55,6 +55,7 @@ faiss-cpu = "^1.8.0"
 
 # Async & Performance
 aiofiles = "^23.2.0"
+aiohttp = "^3.9.0"
 tqdm = "^4.66.0"
 
 # Date/Time utilities
@@ -125,8 +126,14 @@ module = [
     "torch",
     "diskcache",
     "faiss",
+    "aiohttp",
 ]
 ignore_missing_imports = true
+
+# Skip type checking for test files
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

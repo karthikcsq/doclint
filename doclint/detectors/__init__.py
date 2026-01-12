@@ -2,7 +2,7 @@
 
 This module provides detectors that analyze document corpora for:
 - Conflicts: Semantically similar but contradictory content
-- Completeness: Missing metadata or incomplete content (future)
+- Completeness: Missing metadata or incomplete content
 - Drift: Changes from previous versions (future)
 
 The detection pipeline uses FAISS for efficient similarity search,
@@ -13,6 +13,7 @@ Install with: pip install doclint[llm]
 """
 
 from .base import BaseDetector, ContradictionVerifier, Issue, IssueSeverity
+from .completeness import CompletenessDetector
 from .conflicts import ConflictDetector
 from .llm_verifier import (
     KNOWN_MODELS,
@@ -21,6 +22,7 @@ from .llm_verifier import (
     create_verifier_from_config,
     list_available_models,
 )
+from .registry import DetectorRegistry
 from .vector_index import ChunkIndex
 
 __all__ = [
@@ -31,6 +33,9 @@ __all__ = [
     "IssueSeverity",
     # Detectors
     "ConflictDetector",
+    "CompletenessDetector",
+    # Registry
+    "DetectorRegistry",
     # LLM Verifiers
     "LlamaCppVerifier",
     "MockLlamaCppVerifier",

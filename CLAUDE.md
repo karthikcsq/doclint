@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **DocLint** is a Python CLI tool that serves as "ESLint for AI Knowledge Bases" - it detects data quality issues in document collections before they cause AI agents to hallucinate or produce incorrect answers.
 
-**Current Status**: v0.1.0 (Phase 1 complete, Phase 2 complete - all document parsers implemented with comprehensive tests)
+**Current Status**: v0.1.0 (Phase 1-5 complete - CLI fully functional with reporting system)
 
 ## Development Commands
 
@@ -40,7 +40,13 @@ mkdocs build              # Build documentation site
 ### CLI Usage
 ```bash
 doclint version           # Display version information
-doclint scan <path>       # Scan directory for data quality issues (stub in Phase 1)
+doclint scan <path>       # Scan directory for data quality issues
+doclint scan <path> --format json --output report.json  # Export JSON report
+doclint scan <path> --format html --output report.html  # Generate HTML report
+doclint scan <path> --check-external-links  # Validate external URLs
+doclint scan <path> --enable-llm  # Enable LLM-based conflict verification
+doclint config-show       # Display current configuration
+doclint formats           # List available output formats
 python -m doclint         # Alternative entry point
 ```
 
@@ -117,9 +123,12 @@ DocLint follows a **layered architecture** with parallel component processing:
 - **LLM Verifier**: llama-cpp-python integration for local LLM verification
 - **DetectorRegistry**: Dynamic detector management and execution
 
-**Reporters** (`doclint/reporters/`) - **NOT IMPLEMENTED**
-- Empty module - needs implementation
-- Planned formats: Console (Rich), JSON, HTML
+**Reporters** (`doclint/reporters/`) - **IMPLEMENTED**
+- **BaseReporter**: Abstract base class with helper methods for Issue compatibility
+- **ConsoleReporter**: Rich-formatted terminal output with severity grouping
+- **JSONReporter**: Structured JSON output for CI/CD integration
+- **HTMLReporter**: Interactive HTML reports with dark mode toggle
+- **ReporterRegistry**: Dynamic reporter discovery and instantiation
 
 ## Code Quality Standards
 
@@ -240,12 +249,33 @@ Configured checks:
 - ✅ **DetectorRegistry** for dynamic detector management
 - ✅ Integration tests for detector pipeline
 
+### Phase 5: Reporters & CLI Integration (Complete) (Commit: 2436ec4)
+**Full reporting system and CLI integration implemented:**
+- ✅ **Reporters** - Complete output formatter system
+  - BaseReporter abstract class with helper methods
+  - **ConsoleReporter**: Rich-formatted terminal output with grouped issues
+  - **JSONReporter**: Structured JSON for CI/CD integration
+  - **HTMLReporter**: Beautiful interactive HTML reports with dark mode
+  - **ReporterRegistry**: Dynamic reporter management and discovery
+  - Comprehensive test coverage for all reporters
+- ✅ **CLI Integration** - Scanner wired into CLI
+  - `doclint scan <path>` - Full scanning with configurable options
+  - Format selection: `--format console|json|html`
+  - Output file support: `--output <file>`
+  - Detector options: `--check-external-links`, `--enable-llm`
+  - Exit codes: 0 (success), 1 (warnings), 2 (critical), 3 (error)
+  - `doclint config-show` - Display current configuration
+  - `doclint formats` - List available output formats
+- ✅ **Issue Compatibility** - Unified interface
+  - Added properties to scanner.Issue (title, description, detector, documents)
+  - Reporters seamlessly handle both scanner and detector Issue types
+  - Type-safe severity handling with enum conversions
+
 ### Remaining Work:
-- ⬜ **Reporters**: Console (Rich), JSON, and HTML output formatters
-- ⬜ **CLI Integration**: Wire Scanner into `doclint scan` command
 - ⬜ **Additional Tests**: ConflictDetector unit tests, end-to-end integration tests
 - ⬜ **Documentation**: User guides, API docs, configuration examples
 - ⬜ **Optimization**: Performance tuning, incremental scanning
+- ⬜ **CI/CD**: GitHub Actions for automated testing and releases
 
 ## Key Files
 
@@ -274,7 +304,8 @@ Configured checks:
 - **Integration Tests**: `tests/test_parsers/test_integration.py` - Multi-format workflows
 - **Registry Tests**: `tests/test_parsers/test_registry.py` - Parser selection logic
 - **Detector Tests**: `tests/test_detectors/test_completeness.py` - Completeness detector tests
-- **Coverage**: 187 parser tests + comprehensive detector tests with edge cases
+- **Reporter Tests**: `tests/test_reporters/` - Tests for all reporter implementations
+- **Coverage**: 187 parser tests + comprehensive detector/reporter tests with edge cases
 
 ## Architecture Reference
 

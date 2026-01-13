@@ -196,17 +196,17 @@ class EmbeddingConfig(BaseModel):
 class DocLintConfig(BaseModel):
     """Main configuration class for DocLint.
 
-    This is the root configuration object that contains all settings for
-    scanning, caching, and detection.
+        This is the root configuration object that contains all settings for
+        scanning, caching, and detection.
 
-    Attributes:
-        recursive: Whether to scan directories recursively
-        cache_enabled: Whether to use embedding cache
-        cache_dir: Custom cache directory (None for platform default)
-        max_workers: Maximum number of worker threads for parsing
-        conflict: Conflict detector configuration
-        completeness: Completeness detector configuration
-        embedding: Embedding generation configuration
+        Attributes:
+            recursive: Whether to scan directories recursively
+            cache_enabled: Whether to use embedding cache
+            cache_dir: Custom cache directory (None for platform default)
+            max_workers: Maximum number of worker threads for parsing
+    =        conflict: Conflict detector configuration
+            completeness: Completeness detector configuration
+            embedding: Embedding generation configuration
     """
 
     recursive: bool = Field(

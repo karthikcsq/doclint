@@ -202,6 +202,7 @@ cython_debug/
 .cursorindexingignore
 
 .claude
+tmpclaude*
 
 # Marimo
 marimo/_static/

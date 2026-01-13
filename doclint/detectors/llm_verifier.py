@@ -67,6 +67,12 @@ KNOWN_MODELS: Dict[str, Dict[str, str]] = {
         "filename": "qwen2.5-3b-instruct-q4_k_m.gguf",
         "description": "Qwen 2.5 3B - Good multilingual support",
     },
+    # Granite Models (IBM)
+    "granite-1b": {
+        "repo_id": "unsloth/granite-4.0-h-1b-GGUF",
+        "filename": "granite-4.0-h-1b-Q5_K_M.gguf",
+        "description": "IBM Granite 4.0 H 1B - Excellent reasoning, compact size",
+    },
 }
 
 # Default model alias

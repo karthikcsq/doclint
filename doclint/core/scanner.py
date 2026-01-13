@@ -37,6 +37,33 @@ class Issue:
     document_path: Path
     details: Dict[str, Any] = field(default_factory=dict)
 
+    @property
+    def title(self) -> str:
+        """Get issue title from details or default to message."""
+        result: str = self.details.get("title", self.message)
+        return result
+
+    @property
+    def description(self) -> str:
+        """Get issue description from details or empty string."""
+        result: str = self.details.get("description", "")
+        return result
+
+    @property
+    def detector(self) -> str:
+        """Get detector name from details or default to issue_type."""
+        result: str = self.details.get("detector", self.issue_type)
+        return result
+
+    @property
+    def documents(self) -> List[Path]:
+        """Get list of affected documents."""
+        docs_from_details = self.details.get("documents", [])
+        if docs_from_details:
+            return [Path(d) if not isinstance(d, Path) else d for d in docs_from_details]
+        # Fallback to single document_path
+        return [self.document_path] if self.document_path else []
+
 
 @dataclass
 class ScanResult:

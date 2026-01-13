@@ -271,6 +271,13 @@ Configured checks:
   - Reporters seamlessly handle both scanner and detector Issue types
   - Type-safe severity handling with enum conversions
 
+### Maintenance: Cleanup (Commit: 362e29e)
+**Repository cleanup and gitignore improvements:**
+- ✅ Removed `.claude` directory from version control
+- ✅ Removed temporary `tmpclaude-*` files from tracking
+- ✅ Updated `.gitignore` to prevent tracking of Claude Code temp files
+- ✅ Updated configuration files for LLM verifier and core config
+
 ### Remaining Work:
 - ⬜ **Additional Tests**: ConflictDetector unit tests, end-to-end integration tests
 - ⬜ **Documentation**: User guides, API docs, configuration examples
